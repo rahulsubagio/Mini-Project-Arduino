@@ -39,8 +39,6 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;);
   }
-  display.display();
-  delay(1000);
   display.clearDisplay();
 
   // Inisialisasi Servo
@@ -50,19 +48,26 @@ void setup() {
   // Inisialisasi Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, LOW);
-
-  // Menampilkan pesan awal
-  display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
-  int16_t x, y;
-  uint16_t width, height;
-  display.getTextBounds("DoorLocked", 0, 0, &x, &y, &width, &height);
-  display.setCursor((SCREEN_WIDTH - width) / 2, (SCREEN_HEIGHT - height) / 2);
-  display.print("DoorLocked");
-  display.display();
 }
 
 void loop() {
+  static bool isLocked = true;
+  if (isLocked) {
+    // Menampilkan animasi mata saat pintu terkunci
+    mataBerkedip();
+    delay(150);
+    ekspresiMelihatKiri();
+    delay(1500);
+    mataBerkedip();
+    delay(150);
+    ekspresiDatar();
+    delay(1500);
+    mataBerkedip();
+    delay(150);
+    ekspresiMelihatKanan();
+    delay(1500);
+  }
+
   char key = keypad.getKey();
 
   if (key) {
@@ -75,15 +80,19 @@ void loop() {
       // Cek apakah password benar
       if (inputPassword == password) {
         unlockDoor();
+        isLocked = false;
       } else {
         incorrectPassword();
       }
       inputPassword = "";  // Reset input password
-      displayPasswordPrompt();
     } else if (key == '*') {
       // Reset input jika ditekan tombol '*'
       inputPassword = "";
-      displayPasswordPrompt();
+      mataBerkedip();
+      delay(150);
+      ekspresiSedih();
+      delay(1500);
+      isLocked = true;
     } else {
       // Menambahkan karakter yang ditekan ke inputPassword
       inputPassword += key;
@@ -93,6 +102,15 @@ void loop() {
 }
 
 void unlockDoor() {
+  mataBerkedip();
+  delay(150);
+  ekspresiSenang();
+  delay(1500);
+  mataBerkedip();
+  delay(150);
+  ekspresiSenang();
+  delay(1500);
+
   display.clearDisplay();
   display.setTextSize(2);
   int16_t x, y;
@@ -116,6 +134,14 @@ void unlockDoor() {
 }
 
 void incorrectPassword() {
+  mataBerkedip();
+  delay(150);
+  ekspresiMarah();
+  delay(1500);
+  mataBerkedip();
+  delay(150);
+  ekspresiDatar();
+
   display.clearDisplay();
   display.setTextSize(2);
   int16_t x, y;
@@ -153,5 +179,60 @@ void displayMaskedPassword() {
   for (int i = 0; i < inputPassword.length(); i++) {
     display.print('*');
   }
+  display.display();
+}
+
+void ekspresiMelihatKiri() {
+  display.clearDisplay();
+  display.fillRoundRect(0, 0, 50, 32, 8, SSD1306_WHITE); // Mata kiri berada di tengah layar dengan rounded lebih kecil
+  display.fillRoundRect(58, 4, 45, 24, 6, SSD1306_WHITE); // Mata kanan lebih kecil dan posisinya sedikit lebih ke atas
+  display.display();
+}
+
+void ekspresiMelihatKanan() {
+  display.clearDisplay();
+  display.fillRoundRect(24, 4, 45, 24, 6, SSD1306_WHITE); // Mata kiri lebih kecil dan posisinya sedikit lebih ke atas
+  display.fillRoundRect(76, 0, 50, 32, 8, SSD1306_WHITE); // Mata kanan berada di tengah layar dengan rounded lebih kecil
+  display.display();
+}
+
+void ekspresiDatar() {
+  display.clearDisplay();
+  display.fillRoundRect(9, 0, 50, 32, 8, SSD1306_WHITE); // Mata kiri berada di tengah layar dengan rounded lebih kecil
+  display.fillRoundRect(69, 0, 50, 32, 8, SSD1306_WHITE); // Mata kanan berada di tengah layar dengan rounded lebih kecil
+  display.display();
+}
+
+void ekspresiMarah() {
+  display.clearDisplay();
+  display.fillRoundRect(9, 0, 50, 32, 8, SSD1306_WHITE); // Mata kiri berada di tengah dengan rounded lebih kecil
+  display.fillRoundRect(69, 0, 50, 32, 8, SSD1306_WHITE); // Mata kanan berada di tengah dengan rounded lebih kecil
+  display.fillTriangle(9, 0, 59, 0, 59, 16, SSD1306_BLACK); // Potongan kiri: kiri atas ke kanan bawah
+  display.fillTriangle(69, 0, 69, 16, 119, 0, SSD1306_BLACK); // Potongan kanan: kanan atas ke kiri bawah
+  display.display();
+}
+
+void ekspresiSedih() {
+  display.clearDisplay();
+  display.fillRoundRect(9, 0, 50, 32, 8, SSD1306_WHITE); // Mata kiri berada di tengah dengan rounded lebih kecil
+  display.fillRoundRect(69, 0, 50, 32, 8, SSD1306_WHITE); // Mata kanan berada di tengah dengan rounded lebih kecil
+  display.fillTriangle(59, 0, 9, 0, 9, 16, SSD1306_BLACK); // Potongan kiri: kanan atas ke kiri bawah
+  display.fillTriangle(69, 0, 119, 16, 119, 0, SSD1306_BLACK); // Potongan kanan: kiri atas ke kanan bawah
+  display.display();
+}
+
+void ekspresiSenang() {
+  display.clearDisplay();
+  display.fillRoundRect(9, 0, 50, 32, 8, SSD1306_WHITE); // Mata kiri berada di tengah dengan rounded lebih kecil
+  display.fillRoundRect(69, 0, 50, 32, 8, SSD1306_WHITE); // Mata kanan berada di tengah dengan rounded lebih kecil
+  display.fillTriangle(59, 32, 9, 32, 9, 16, SSD1306_BLACK); // Potongan kiri: kanan bawah ke kiri atas
+  display.fillTriangle(69, 32, 119, 32, 119, 16, SSD1306_BLACK); // Potongan kanan: kiri bawah ke kanan atas
+  display.display();
+}
+
+void mataBerkedip() {
+  display.clearDisplay();
+  display.fillRoundRect(9, 14, 50, 4, 2, SSD1306_WHITE); // Mata kiri tertutup
+  display.fillRoundRect(69, 14, 50, 4, 2, SSD1306_WHITE); // Mata kanan tertutup
   display.display();
 }
